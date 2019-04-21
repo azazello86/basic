@@ -41,13 +41,14 @@ $config = [
             ],
         ],
         'db' => require(__DIR__ . '/db.php'),
+        'db1' => require(__DIR__ . '/db1.php'),
 
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'enableStrictParsing' => false,
             'rules' => [
-                '<action:(login|contact|logout|about)>' => 'site/<action>',
+                '<action:(login|contact|logout|about|test)>' => 'site/<action>',
             ],
         ],
 

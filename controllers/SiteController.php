@@ -2,6 +2,9 @@
 
 namespace app\controllers;
 
+use app\models\AirportName;
+use app\models\FlightSegment;
+use app\models\Trip;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -122,5 +125,53 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+
+    public function actionTest()
+    {
+        define('TRIP_CORPORATE_ID', 3);
+        define('TRIP_SERVICE_SERVICE_ID', 2);
+
+
+/*
+        Пробую одним запросом к двум базам - не получается
+
+        $results = FlightSegment::find(['Trip.*'])->asArray()->with('tripService', 'tripService.trip')->joinWith(['airportName a'], true, 'INNER JOIN')->where([
+            'and',
+            ['a.value' => 'Домодедово, Москва'],
+            ['trip.corporate_id' => TRIP_CORPORATE_ID],
+            ['tripService.service_id' => TRIP_SERVICE_SERVICE_ID],
+        ])->all();
+
+        Тогда разобью задачу на 2 запроса
+*/
+
+        $airportArr = AirportName::find(['airport_id'])->asArray()->where(['value' => 'Домодедово, Москва'])->one();
+
+        // die(print($airportArr['airport_id']));
+
+        /*
+        SELECT t.* FROM flight_segment f
+        LEFT JOIN trip_service ts ON f.flight_id = ts.id
+        LEFT JOIN trip t ON t.id = ts.trip_id
+        WHERE f.depAirportId = 758
+        AND t.corporate_id = 3
+        AND ts.service_id = 2
+        */
+
+        $results = FlightSegment::find(['Trip.*'])->asArray()->joinWith(['tripService ts', 'tripService.trip t'])->where([
+            'and',
+            ['depAirportId' => $airportArr['airport_id']],
+            ['t.corporate_id' => TRIP_CORPORATE_ID],
+            ['ts.service_id' => TRIP_SERVICE_SERVICE_ID],
+        ])->all();
+
+        /*
+        echo '<pre>';
+        die(print_r($results));
+        */
+        return $this->render('test', [
+            'results' => $results
+        ]);
     }
 }
